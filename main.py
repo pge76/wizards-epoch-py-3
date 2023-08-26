@@ -1,8 +1,12 @@
 import pygame as pg
 import sys
+
 from player import *
 from wall import *
 from settings import *
+from tilemap import *
+from camera import *
+
 from os import path
 
 
@@ -11,7 +15,6 @@ class Game:
         pg.init()
         self.player = None
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
-
         pg.display.set_caption(TITLE)
 
         pg.key.set_repeat(300, 100)
@@ -23,24 +26,31 @@ class Game:
         game_folder = path.dirname(__file__)
 
         # read file map.txt and add it to map_data
-        self.map_data = []
-        with open(path.join(game_folder, "map.txt"), "rt") as f:
-            for line in f:
-                self.map_data.append(line)
+        self.map = Map(path.join(game_folder, "forest_a2.map"))
+        self.map_data = self.map.data
 
     def new(self):
         # initialize all variables and do all the setup for a new game
         self.all_sprites = pg.sprite.Group()
         self.walls = pg.sprite.Group()
+
         # draw walls
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
                 if tile == "1":
                     Wall(self, col, row)
+                if tile == "f":
+                    Forest(self, col, row)
+                if tile == "s":
+                    Stone(self, col, row)
+                if tile == "e":
+                    Empty(self, col, row)
                 if (
                     tile == "P" and not self.player
                 ):  # initialize player on the first 'p' in map.txt
                     self.player = Player(self, col, row)
+
+        self.camera = Camera(self.map.width, self.map.height)
 
     def run(self):
         self.playing = True
@@ -57,13 +67,16 @@ class Game:
 
     def update(self):
         self.all_sprites.update()
+        self.camera.update(self.player)
 
     def draw(self):
         self.screen.fill(BGCOLOR)
         # draw grid
-        self.draw_grid()
+        # self.draw_grid()
 
-        self.all_sprites.draw(self.screen)
+        for sprite in self.all_sprites:
+            self.screen.blit(sprite.image, self.camera.apply(sprite))
+
         pg.display.flip()
 
     def events(self):
