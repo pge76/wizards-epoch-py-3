@@ -1,4 +1,3 @@
-from typing import Any
 import pygame as pg
 from settings import *
 
@@ -6,10 +5,11 @@ from settings import *
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites
+        self._layer = PLAYER_LAYER
+
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill("yellow")
+        self.image = self.game.image_map.get_image("player", -1)
 
         self.pos = pg.math.Vector2(x, y) * TILESIZE
 

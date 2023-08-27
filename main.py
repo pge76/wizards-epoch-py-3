@@ -2,10 +2,13 @@ import pygame as pg
 import sys
 
 from player import *
-from wall import *
+from tile import *
 from settings import *
-from tilemap import *
+from map import *
 from camera import *
+from spritesheet import *
+from image_map import *
+from pygame.math import Vector2
 
 from os import path
 
@@ -25,29 +28,66 @@ class Game:
     def load_data(self):
         game_folder = path.dirname(__file__)
 
+        self.sprite_folder = game_folder + SPRITES_FOLDER
+        self.map_folder = game_folder + MAP_FOLDER
+
         # read file map.txt and add it to map_data
-        self.map = Map(path.join(game_folder, "forest_a2.map"))
-        self.map_data = self.map.data
+        self.map = Map(path.join(self.map_folder, "forest_a2.map"))
+
+        self.image_map = ImageMap(self).init_imagemap()
 
     def new(self):
         # initialize all variables and do all the setup for a new game
-        self.all_sprites = pg.sprite.Group()
+        self.all_sprites = pg.sprite.LayeredUpdates()
         self.walls = pg.sprite.Group()
 
-        # draw walls
-        for row, tiles in enumerate(self.map_data):
+        # draw initial map
+        for row, tiles in enumerate(self.map.data):
             for col, tile in enumerate(tiles):
-                if tile == "1":
-                    Wall(self, col, row)
+                if tile == "g":
+                    Tile(
+                        self,
+                        Vector2(col, row),
+                        self.image_map.get_image("grass"),
+                        (self.all_sprites),
+                    )
                 if tile == "f":
-                    Forest(self, col, row)
+                    Tile(
+                        self,
+                        Vector2(col, row),
+                        self.image_map.get_image("forest"),
+                        (self.all_sprites, self.walls),
+                    )
                 if tile == "s":
-                    Stone(self, col, row)
+                    Tile(
+                        self,
+                        Vector2(col, row),
+                        self.image_map.get_image("stone"),
+                        (self.all_sprites, self.walls),
+                    )
                 if tile == "e":
-                    Empty(self, col, row)
+                    Tile(
+                        self,
+                        Vector2(col, row),
+                        self.image_map.get_image("empty"),
+                        (self.all_sprites, self.walls),
+                    )
+                if tile == ".":
+                    Tile(
+                        self,
+                        Vector2(col, row),
+                        self.image_map.get_image("path"),
+                        (self.all_sprites),
+                    )
                 if (
                     tile == "P" and not self.player
-                ):  # initialize player on the first 'p' in map.txt
+                ):  # initialize player on the first 'P' in map
+                    Tile(
+                        self,
+                        Vector2(col, row),
+                        self.image_map.get_image("path"),
+                        (self.all_sprites),
+                    )
                     self.player = Player(self, col, row)
 
         self.camera = Camera(self.map.width, self.map.height)
