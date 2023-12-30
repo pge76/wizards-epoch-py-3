@@ -3,8 +3,8 @@ HEIGHT = 768
 FPS = 60
 
 
-MAP_FOLDER = "./maps/"
-SPRITES_FOLDER = "./sprites/"
+MAP_FOLDER = "maps/"
+SPRITES_FOLDER = "sprites/"
 
 BGCOLOR = "grey"
 
